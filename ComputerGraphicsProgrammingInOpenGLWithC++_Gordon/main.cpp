@@ -9,7 +9,47 @@ using namespace std;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 
+void printShaderLog(GLuint shader) {
+	int len = 0;
+	int chWrittn = 0;
+	char* log;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+	if (len > 0) {
+		log = (char*)malloc(len);
+		glGetShaderInfoLog(shader, len, &chWrittn, log);
+		cout << "Shader info log: " << log << endl;
+		free(log);
+	}
+}
+
+void printProgramLog(int prog) {
+	int len = 0;
+	int chWrittn = 0;
+	char* log;
+	glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &len);
+	if (len > 0) {
+		log = (char*)malloc(len);
+		glGetProgramInfoLog(prog, len, &chWrittn, log);
+		cout << "Program info log: " << log << endl;
+		free(log);
+	}
+}
+
+bool checkOpenGLError() {
+	bool foundError = false;
+	int glErr = glGetError();
+	while (glErr != GL_NO_ERROR) {
+		cout << "glError: " << glErr << endl;
+		foundError = true;
+		glErr = glGetError();
+	}
+	return foundError;
+}
+
 GLuint createShaderProgram() {
+	GLint vertCompiled;
+	GLint fragCompiled;
+	GLint linked;
 	const char* vshaderSource = 
 		"#version 430 \n" 
 		"void main(void) \n" 
@@ -23,12 +63,37 @@ GLuint createShaderProgram() {
 	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(vShader, 1, &vshaderSource, NULL);
 	glShaderSource(fShader, 1, &fshaderSource, NULL);
+	
 	glCompileShader(vShader);
+	// Check vertex shader error
+	checkOpenGLError();
+	glGetShaderiv(vShader, GL_COMPILE_STATUS, &vertCompiled);
+	if (vertCompiled != 1) {
+		cout << "vertex compilation failed" << endl;
+		printShaderLog(vShader);
+	}
+
 	glCompileShader(fShader);
+	// Check fragment shader error
+	checkOpenGLError();
+	glGetShaderiv(fShader, GL_COMPILE_STATUS, &fragCompiled);
+	if (fragCompiled != 1) {
+		cout << "fragment compilation failed" << endl;
+		printShaderLog(fShader);
+	}
+
 	GLuint vfProgram = glCreateProgram();
 	glAttachShader(vfProgram, vShader);
 	glAttachShader(vfProgram, fShader);
 	glLinkProgram(vfProgram);
+	// Check linking shaders error
+	checkOpenGLError();
+	glGetProgramiv(vfProgram, GL_LINK_STATUS, &linked);
+	if (linked != 1) {
+		cout << "linking failed" << endl;
+		printProgramLog(vfProgram);
+	}
+
 	return vfProgram;
 }
 
@@ -37,6 +102,8 @@ void init(GLFWwindow* window) {
 	glGenVertexArrays(numVAOs, vao);
 	glBindVertexArray(vao[0]);
 }
+
+
 
 void display(GLFWwindow* window, double currentTime) {
 	//glClearColor(1.0, 0.0, 0.0, 1.0);
