@@ -10,6 +10,8 @@ using namespace std;
 
 GLuint renderingProgram;
 GLuint vao[numVAOs];
+float x = 0.0f; // location of triangle on x-axis
+float inc = 0.01f; // offset for moving the triangle
 
 void printShaderLog(GLuint shader) {
 	int len = 0;
@@ -114,10 +116,15 @@ void init(GLFWwindow* window) {
 }
 
 void display(GLFWwindow* window, double currentTime) {
-	//glClearColor(1.0, 0.0, 0.0, 1.0);
-	//glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT); // clear the background to black, each time
 	glUseProgram(renderingProgram);
-	glPointSize(30.0f);
+	x += inc;
+	if (x > 1.0f) inc = -0.01f; // switch to moving triangle to the left
+	if (x < -1.0f) inc = 0.01f; // switch to moving triangle to the right
+	GLuint offsetLoc = glGetUniformLocation(renderingProgram, "offset"); // get ptr to "offset" from vertex shading program
+	glProgramUniform1f(renderingProgram, offsetLoc, x); // set value in "x" to "offset"
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
