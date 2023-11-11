@@ -9,8 +9,8 @@ using namespace std;
 
 GLuint renderingProgram;
 GLuint vao[numVAOs];
-float x = 0.0f; // location of triangle on x-axis
-float inc = 0.01f; // offset for moving the triangle
+float size_point = 1.0f; // size of point is 1 pixel
+float inc = 1.0f; // size incremental of 1 pixel
 
 void init(GLFWwindow* window) {
 	renderingProgram = Utils::createShaderProgram("vertShader.glsl", "fragShader.glsl");
@@ -23,12 +23,13 @@ void display(GLFWwindow* window, double currentTime) {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT); // clear the background to black, each time
 	glUseProgram(renderingProgram);
-	x += inc;
-	if (x > 1.0f) inc = -0.01f; // switch to moving triangle to the left
-	if (x < -1.0f) inc = 0.01f; // switch to moving triangle to the right
-	GLuint offsetLoc = glGetUniformLocation(renderingProgram, "offset"); // get ptr to "offset" from vertex shading program
-	glProgramUniform1f(renderingProgram, offsetLoc, x); // set value in "x" to "offset"
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	// Read from rendering program 
+	size_point += inc;
+	if (size_point > 50.0f) inc = -1.0f; // switch to size reducing
+	if (size_point < 1.0f) inc = 1.0f; // switch to size increasing
+	glPointSize(size_point);
+	glDrawArrays(GL_POINTS, 0, 1);
 }
 
 int main(void) {
