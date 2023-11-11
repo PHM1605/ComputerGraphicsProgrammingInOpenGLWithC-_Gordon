@@ -2,15 +2,56 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "Utils.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #define numVAOs 1
 
 using namespace std;
+using namespace glm;
 
 GLuint renderingProgram;
 GLuint vao[numVAOs];
-float sideLength = 200.0f; // side of triangle is 200px
-float lastTime = 0.0f;
+
+mat4 buildTranslate(float x, float y, float z) {
+	mat4 trans = mat4(
+		1.0, 0.0, 0.0, 0.0, // first COLUMN, not row
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		x, y, z, 1.0);
+	return trans;
+}
+
+mat4 buildRotateX(float rad) {
+	mat4 xrot = mat4(
+		1.0, 0.0, 0.0, 0.0,
+		0.0, cos(rad), sin(rad), 0.0,
+		0.0, -sin(rad), cos(rad), 0.0,
+		0.0, 0.0, 0.0, 1.0
+	);
+	return xrot;
+}
+
+mat4 buildRotateY(float rad) {
+	mat4 yrot = mat4(
+		cos(rad), 0.0, -sin(rad), 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		sin(rad), 0.0, cos(rad), 0.0,
+		0.0, 0.0, 0.0, 1.0
+	);
+	return yrot;
+}
+
+mat4 buildRotateZ(float rad) {
+	mat4 zrot = mat4(
+		cos(rad), sin(rad), 0.0, 0.0,
+		-sin(rad), cos(rad), 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0
+	);
+	return zrot;
+}
 
 void init(GLFWwindow* window) {
 	renderingProgram = Utils::createShaderProgram("vertShader.glsl", "fragShader.glsl");
@@ -19,16 +60,15 @@ void init(GLFWwindow* window) {
 }
 
 void display(GLFWwindow* window, double currentTime) {
-	cout << "Duration since the last iteration: " << currentTime - lastTime << endl;
-	lastTime = currentTime;
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT); // clear the background to black, each time
 	glUseProgram(renderingProgram);
 
-	// Read from rendering program 
-	GLuint loc = glGetUniformLocation(renderingProgram, "sideLength");
-	glProgramUniform1f(renderingProgram, loc, sideLength); // set sideLength[px] to uniform location of "sideLength" in glsl file
+	GLuint rotMatLoc = glGetUniformLocation(renderingProgram, "rotMat");
+	mat4 rotMat= buildRotateZ(1.047); // rotate clockwise pi/3 rad
+	glUniformMatrix4fv(rotMatLoc, 1, GL_FALSE, glm::value_ptr(rotMat));
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
