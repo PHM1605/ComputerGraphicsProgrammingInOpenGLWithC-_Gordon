@@ -10,6 +10,7 @@ using namespace std;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 float sideLength = 200.0f; // side of triangle is 200px
+float lastTime = 0.0f;
 
 void init(GLFWwindow* window) {
 	renderingProgram = Utils::createShaderProgram("vertShader.glsl", "fragShader.glsl");
@@ -18,6 +19,8 @@ void init(GLFWwindow* window) {
 }
 
 void display(GLFWwindow* window, double currentTime) {
+	cout << "Duration since the last iteration: " << currentTime - lastTime << endl;
+	lastTime = currentTime;
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT); // clear the background to black, each time
