@@ -9,8 +9,7 @@ using namespace std;
 
 GLuint renderingProgram;
 GLuint vao[numVAOs];
-float size_point = 1.0f; // size of point is 1 pixel
-float inc = 1.0f; // size incremental of 1 pixel
+float sideLength = 200.0f; // side of triangle is 200px
 
 void init(GLFWwindow* window) {
 	renderingProgram = Utils::createShaderProgram("vertShader.glsl", "fragShader.glsl");
@@ -25,11 +24,9 @@ void display(GLFWwindow* window, double currentTime) {
 	glUseProgram(renderingProgram);
 
 	// Read from rendering program 
-	size_point += inc;
-	if (size_point > 50.0f) inc = -1.0f; // switch to size reducing
-	if (size_point < 1.0f) inc = 1.0f; // switch to size increasing
-	glPointSize(size_point);
-	glDrawArrays(GL_POINTS, 0, 1);
+	GLuint loc = glGetUniformLocation(renderingProgram, "sideLength");
+	glProgramUniform1f(renderingProgram, loc, sideLength); // set sideLength[px] to uniform location of "sideLength" in glsl file
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 int main(void) {
