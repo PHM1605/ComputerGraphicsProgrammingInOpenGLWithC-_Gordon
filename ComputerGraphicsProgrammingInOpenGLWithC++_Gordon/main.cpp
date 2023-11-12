@@ -17,10 +17,9 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 GLuint mvLoc, projLoc;
 float cameraX, cameraY, cameraZ;
-float cubeLocX, cubeLocY, cubeLocZ;
 int width, height; // window width and height
 float aspect;
-glm::mat4 pMat, vMat, mMat, mvMat;
+glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat;
 
 void setupVertices(void) {
 	// 36 vertices, 12 triangles, make 2x2x2 cube placed at origin
@@ -45,54 +44,15 @@ void setupVertices(void) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
 }
 
-mat4 buildTranslate(float x, float y, float z) {
-	mat4 trans = mat4(
-		1.0, 0.0, 0.0, 0.0, // first COLUMN, not row
-		0.0, 1.0, 0.0, 0.0,
-		0.0, 0.0, 1.0, 0.0,
-		x, y, z, 1.0);
-	return trans;
-}
-
-mat4 buildRotateX(float rad) {
-	mat4 xrot = mat4(
-		1.0, 0.0, 0.0, 0.0,
-		0.0, cos(rad), sin(rad), 0.0,
-		0.0, -sin(rad), cos(rad), 0.0,
-		0.0, 0.0, 0.0, 1.0
-	);
-	return xrot;
-}
-
-mat4 buildRotateY(float rad) {
-	mat4 yrot = mat4(
-		cos(rad), 0.0, -sin(rad), 0.0,
-		0.0, 1.0, 0.0, 0.0,
-		sin(rad), 0.0, cos(rad), 0.0,
-		0.0, 0.0, 0.0, 1.0
-	);
-	return yrot;
-}
-
-mat4 buildRotateZ(float rad) {
-	mat4 zrot = mat4(
-		cos(rad), sin(rad), 0.0, 0.0,
-		-sin(rad), cos(rad), 0.0, 0.0,
-		0.0, 0.0, 1.0, 0.0,
-		0.0, 0.0, 0.0, 1.0
-	);
-	return zrot;
-}
-
 void init(GLFWwindow* window) {
 	renderingProgram = Utils::createShaderProgram("vertShader.glsl", "fragShader.glsl");
 	cameraX = 0.0f; cameraY = 0.0f; cameraZ = 8.0f;
-	cubeLocX = 0.0f; cubeLocY = -2.0f; cubeLocZ = 0.0f;
 	setupVertices();
 }
 
 void display(GLFWwindow* window, double currentTime) {
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(renderingProgram);
 
 	// Get the uniform variables locations for the MV and projection matrices
@@ -106,7 +66,11 @@ void display(GLFWwindow* window, double currentTime) {
 
 	// Build view matrix, model matrix; calculate model-view matrix
 	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
+	tMat = glm::translate(glm::mat4(1.0f), glm::vec3(sin(0.35f * currentTime) * 2.0f, cos(0.52f * currentTime) * 2.0f, sin(0.7f * currentTime) * 2.0f));
+	rMat = glm::rotate(glm::mat4(1.0f), 1.75f * (float)currentTime, glm::vec3(0.0f, 1.0f, 0.0f));
+	rMat = glm::rotate(rMat, 1.75f * (float)currentTime, glm::vec3(1.0f, 0.0f, 0.0f));
+	rMat = glm::rotate(rMat, 1.75f * (float)currentTime, glm::vec3(0.0f, 0.0f, 1.0f));
+	mMat = tMat * rMat;
 	mvMat = vMat * mMat;
 
 	// Copy perspective and MV matrices to corresponding uniform variables
